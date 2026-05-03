@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Commute">
+  <meta name="theme-color" content="#0b0d12">
+  <title>Commute</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-0: #0b0d12;
+      --bg-1: #14171f;
+      --ink: #f4f1ea;
+      --ink-dim: #8a8b94;
+      --ink-faint: #4a4c55;
+      --office-glow: #f0a868;
+      --office-edge: rgba(240, 168, 104, 0.35);
+      --home-glow: #7eb6a8;
+      --home-edge: rgba(126, 182, 168, 0.35);
+      --card-bg: rgba(255, 255, 255, 0.025);
+      --card-border: rgba(255, 255, 255, 0.06);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Fraunces', Georgia, serif;
+      color: var(--ink);
+      background: var(--bg-0);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(240, 168, 104, 0.08), transparent 60%),
+        radial-gradient(ellipse 80% 50% at 50% 100%, rgba(126, 182, 168, 0.08), transparent 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 50%, var(--bg-0) 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+      z-index: 1;
+      background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      padding: 24px 20px 28px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 8px 4px 0;
+      animation: fadeDown 0.8s ease-out both;
+    }
+
+    .brand {
+      font-style: italic;
+      font-weight: 300;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+
+    .brand .accent {
+      color: var(--office-glow);
+    }
+
+    .clock {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px 0;
+    }
+
+    .card {
+      position: relative;
+      display: block;
+      width: 100%;
+      padding: 28px 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1),
+                  border-color 0.25s ease,
+                  background 0.25s ease;
+      text-align: left;
+      color: inherit;
+      font-family: inherit;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--accent-edge), transparent 50%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow), transparent 65%);
+      opacity: 0.18;
+      filter: blur(40px);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .card:active {
+      transform: scale(0.97);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .card:active::after {
+      opacity: 0.32;
+      transform: scale(1.1);
+    }
+
+    .card.office {
+      --accent-glow: var(--office-glow);
+      --accent-edge: var(--office-edge);
+      animation: fadeUp 0.7s 0.1s ease-out both;
+    }
+
+    .card.home {
+      --accent-glow: var(--home-glow);
+      --accent-edge: var(--home-edge);
+      animation: fadeUp 0.7s 0.25s ease-out both;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--accent-glow);
+    }
+
+    .icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .meta {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .label {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 56px;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .label em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent-glow);
+    }
+
+    .address {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      color: var(--ink-dim);
+      line-height: 1.5;
+    }
+
+    .arrow {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-glow);
+      transition: transform 0.3s ease;
+    }
+
+    .card:active .arrow {
+      transform: translateX(4px);
+    }
+
+    .arrow svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    footer {
+      text-align: center;
+      animation: fadeUp 0.7s 0.4s ease-out both;
+    }
+
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .footer-text .dot {
+      display: inline-block;
+      margin: 0 8px;
+      opacity: 0.5;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-height: 700px) {
+      .label { font-size: 44px; }
+      .card { padding: 22px 22px; }
+      .card-top { margin-bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="app">
+    <header>
+      <div class="brand">commute<span class="accent">.</span></div>
+      <div class="clock" id="clock">—</div>
+    </header>
+
+    <main>
+      <button class="card office" onclick="navigate('office')" aria-label="Get directions to office">
+        <div class="card-top">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="1"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M4 13h16"/></svg>
+          </div>
+          <div class="meta"><span class="meta-dot"></span><span>Drive · Live traffic</span></div>
+        </div>
+        <div class="label">To <em>Office</em></div>
+        <div class="address">515 S Flower St<br>Los Angeles, CA 90071</div>
+        <div class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </div>
+      </button>
+
+      <button class="card home" onclick="navigate('home')" aria-label="Get directions home">
+        <div class="card-top">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>
+          </div>
+          <div class="meta"><span class="meta-dot"></span><span>Drive · Live traffic</span></div>
+        </div>
+        <div class="label">To <em>Home</em></div>
+        <div class="address">7534 W 89th St<br>Los Angeles, CA 90045</div>
+        <div class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </div>
+      </button>
+    </main>
+
+    <footer>
+      <div class="footer-text">
+        <span>Tap to navigate</span>
+        <span class="dot">·</span>
+        <span>Opens in Maps</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const DESTINATIONS = {
+      office: '515 S Flower St, Los Angeles, CA 90071',
+      home:   '7534 W 89th St, Los Angeles, CA 90045'
+    };
+
+    function navigate(which) {
+      const dest = DESTINATIONS[which];
+      if (!dest) return;
+      // Haptic-style visual feedback already handled by :active CSS.
+      // Universal Google Maps directions URL.
+      // Origin is omitted so Maps uses the device's current location.
+      // travelmode=driving ensures traffic-aware ETA.
+      const url = 'https://www.google.com/maps/dir/?api=1'
+                + '&destination=' + encodeURIComponent(dest)
+                + '&travelmode=driving'
+                + '&dir_action=navigate';
+      window.location.href = url;
+    }
+
+    // Live clock in the header — small touch that makes it feel alive.
+    function updateClock() {
+      const now = new Date();
+      const hh = now.getHours();
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      const h12 = ((hh + 11) % 12) + 1;
+      document.getElementById('clock').textContent = `${h12}:${mm} ${ampm}`;
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+  </script>
+</body>
+</html>
